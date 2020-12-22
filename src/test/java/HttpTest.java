@@ -1,5 +1,8 @@
 import com.tpf.util.http.HttpUtil;
+import org.apache.http.HttpException;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -8,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HttpTest {
+    private static Logger log = LoggerFactory.getLogger(HttpTest.class);
     @Test
     public void testPost() {
         final String SERVER_PORT = "https://ydgd3.zhizhangyi.com:3000";
@@ -22,17 +26,17 @@ public class HttpTest {
                     + "\"deviceIds\": \"960379237636939776,1147,1143"
                     + "\"}");
             String result = HttpUtil.postForm(url, null, params);
-            System.out.println(result);
+            log.info(result);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Test
-    public void testGet() throws NoSuchAlgorithmException, KeyManagementException, IOException {
+    public void testGet() throws NoSuchAlgorithmException, KeyManagementException, IOException, HttpException {
         String url = "https://www.baidu.com/";
         String result = HttpUtil.get(url, null, null);
-        System.out.println(result);
+        log.info(result);
     }
 
 

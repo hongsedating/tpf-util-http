@@ -8,28 +8,21 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.tpf.util.http.HttpUtilConstant.DEFAULT_CHARSET;
+
 public class HttpRequestBuilder {
-    private static Logger log = LoggerFactory.getLogger(HttpRequestBuilder.class);
     private StringBuilder url;
     private HttpMethod method;
     private Map<String, String> headers;
     private HttpEntity httpEntity;
-    private CloseableHttpClient httpClient;
 
     public HttpRequestBuilder url(String url){
         this.url = new StringBuilder(url);
@@ -68,25 +61,45 @@ public class HttpRequestBuilder {
     }
 
     /**form 表单提交的参数*/
-    public HttpRequestBuilder formEntity(Map<String, Object> param) throws UnsupportedEncodingException {
-        log.info("param={}", param);
+    public HttpRequestBuilder formEntity(Map<String, Object> param) {
+        return formEntity(param, DEFAULT_CHARSET);
+    }
+
+    /**form 表单提交的参数*/
+    public HttpRequestBuilder formEntity(Map<String, Object> param, String charsetName) {
+        Charset charset = charsetName == null ? DEFAULT_CHARSET : Charset.forName(charsetName);
+        return formEntity(param, charset);
+    }
+
+    /**form 表单提交的参数*/
+    public HttpRequestBuilder formEntity(Map<String, Object> param, Charset charset) {
+        if(charset == null){
+            charset = DEFAULT_CHARSET;
+        }
         List<NameValuePair> nvps = new ArrayList<>();
         for (Map.Entry<String, Object> entry : param.entrySet()) {
             nvps.add(new BasicNameValuePair(entry.getKey(), String.valueOf(entry.getValue())));
         }
-        this.httpEntity = new UrlEncodedFormEntity(nvps);
+        this.httpEntity = new UrlEncodedFormEntity(nvps, charset);
         return this;
     }
 
     /**String 字符串提交的参数*/
-    public HttpRequestBuilder stringEntity(String body) throws UnsupportedEncodingException {
-        this.httpEntity = new StringEntity(body);
+    public HttpRequestBuilder stringEntity(String body) {
+        this.httpEntity = new StringEntity(body, DEFAULT_CHARSET);
+        return this;
+    }
+
+    /**String 字符串提交的参数*/
+    public HttpRequestBuilder stringEntity(String body, String charsetName) {
+        Charset charset = charsetName == null ? DEFAULT_CHARSET : Charset.forName(charsetName);
+        this.httpEntity = new StringEntity(body, charset);
         return this;
     }
 
     /**String 字符串提交的参数
      * @param charset see constant defined in {@link Charsets}*/
-    public HttpRequestBuilder stringEntity(String body, Charset charset) throws UnsupportedEncodingException {
+    public HttpRequestBuilder stringEntity(String body, Charset charset) {
         this.httpEntity = new StringEntity(body, charset);
         return this;
     }
@@ -96,12 +109,7 @@ public class HttpRequestBuilder {
         return this;
     }
 
-    public HttpRequestBuilder httpClient(CloseableHttpClient httpClient){
-        this.httpClient = httpClient;
-        return this;
-    }
-
-    public HttpRequestBase build() throws NoSuchAlgorithmException, KeyManagementException, IOException {
+    public HttpRequestBase build() {
         if(method == null){
             throw new NullPointerException("method couldn't be null");
         }
