@@ -101,6 +101,7 @@ public class HttpUtil {
         requestBuilder.method(HttpMethod.GET).url(path).headers(headers).urlParam(param);
         String charsetName = options.length > 0 ? (String)options[0] : null;
         HttpRequestBase requestBase = requestBuilder.build();
+        log.info("final url={}", requestBase.getURI());
         return send(requestBase, charsetName);
     }
 
@@ -129,6 +130,21 @@ public class HttpUtil {
         requestBuilder.method(HttpMethod.POST).url(path).headers(headers);
         String charsetName = options.length > 0 ? (String)options[0] : null;
         requestBuilder.formEntity(param, charsetName);
+        HttpRequestBase requestBase = requestBuilder.build();
+        return send(requestBase, charsetName);
+    }
+
+    /**
+     * delete 请求
+     * @param options 配置, [0]表示请求字符集
+     * @return 响应内容
+     * */
+    public static String postRaw(String path, Map<String, String> headers, String param, Object... options) throws HttpException {
+        log.info("path={}, headers={}, param={}", path, headers, param);
+        HttpRequestBuilder requestBuilder = new HttpRequestBuilder();
+        requestBuilder.method(HttpMethod.POST).url(path).headers(headers);
+        String charsetName = options.length > 0 ? (String)options[0] : null;
+        requestBuilder.stringEntity(param, charsetName);
         HttpRequestBase requestBase = requestBuilder.build();
         return send(requestBase, charsetName);
     }
