@@ -28,7 +28,7 @@
         <dependency>
             <groupId>com.tpf.util</groupId>
             <artifactId>tpf-util-jdk-common</artifactId>
-            <version>1.0</version>
+            <version>1.1-snapshot</version>
         </dependency>
         <!-- log start -->
         <dependency>
