@@ -13,6 +13,7 @@ import org.apache.http.message.BasicNameValuePair;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -94,6 +95,18 @@ public class HttpRequestBuilder {
     public HttpRequestBuilder stringEntity(String body, String charsetName) {
         Charset charset = charsetName == null ? DEFAULT_CHARSET : Charset.forName(charsetName);
         this.httpEntity = new StringEntity(body, charset);
+        return this;
+    }
+
+    /**String 字符串提交的参数*/
+    public HttpRequestBuilder rawEntity(String body, String charsetName) {
+        Charset charset = charsetName == null ? DEFAULT_CHARSET : Charset.forName(charsetName);
+        this.httpEntity = new StringEntity(body, charset);
+        ((StringEntity) this.httpEntity).setContentType("text/json");
+        if(headers == null){
+            headers = new HashMap<>();
+        }
+        headers.put("Content-Type", "application/json;charset=UTF-8");
         return this;
     }
 

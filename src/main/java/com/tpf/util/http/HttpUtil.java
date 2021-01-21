@@ -144,7 +144,7 @@ public class HttpUtil {
         HttpRequestBuilder requestBuilder = new HttpRequestBuilder();
         requestBuilder.method(HttpMethod.POST).url(path).headers(headers);
         String charsetName = options.length > 0 ? (String)options[0] : null;
-        requestBuilder.stringEntity(param, charsetName);
+        requestBuilder.rawEntity(param, charsetName);
         HttpRequestBase requestBase = requestBuilder.build();
         return send(requestBase, charsetName);
     }
