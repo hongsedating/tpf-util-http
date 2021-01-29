@@ -20,6 +20,7 @@ import java.util.Map;
 import static com.tpf.util.http.HttpUtilConstant.DEFAULT_CHARSET;
 
 public class HttpRequestBuilder {
+    private String protocol;
     private StringBuilder url;
     private HttpMethod method;
     private Map<String, String> headers;
@@ -87,27 +88,13 @@ public class HttpRequestBuilder {
 
     /**String 字符串提交的参数*/
     public HttpRequestBuilder stringEntity(String body) {
-        this.httpEntity = new StringEntity(body, DEFAULT_CHARSET);
-        return this;
+        return stringEntity(body, DEFAULT_CHARSET);
     }
 
     /**String 字符串提交的参数*/
     public HttpRequestBuilder stringEntity(String body, String charsetName) {
         Charset charset = charsetName == null ? DEFAULT_CHARSET : Charset.forName(charsetName);
-        this.httpEntity = new StringEntity(body, charset);
-        return this;
-    }
-
-    /**String 字符串提交的参数*/
-    public HttpRequestBuilder rawEntity(String body, String charsetName) {
-        Charset charset = charsetName == null ? DEFAULT_CHARSET : Charset.forName(charsetName);
-        this.httpEntity = new StringEntity(body, charset);
-        ((StringEntity) this.httpEntity).setContentType("text/json");
-        if(headers == null){
-            headers = new HashMap<>();
-        }
-        headers.put("Content-Type", "application/json;charset=UTF-8");
-        return this;
+        return stringEntity(body, charset);
     }
 
     /**String 字符串提交的参数
@@ -119,6 +106,11 @@ public class HttpRequestBuilder {
 
     public HttpRequestBuilder httpEntity(HttpEntity httpEntity){
         this.httpEntity = httpEntity;
+        return this;
+    }
+
+    public HttpRequestBuilder sslProtocol(String protocol){
+        this.protocol = protocol;
         return this;
     }
 

@@ -28,6 +28,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.tpf.util.http.HttpUtilConstant.DEFAULT_CHARSET;
 
@@ -144,7 +145,7 @@ public class HttpUtil {
         HttpRequestBuilder requestBuilder = new HttpRequestBuilder();
         requestBuilder.method(HttpMethod.POST).url(path).headers(headers);
         String charsetName = options.length > 0 ? (String)options[0] : null;
-        requestBuilder.rawEntity(param, charsetName);
+        requestBuilder.stringEntity(param, charsetName);
         HttpRequestBase requestBase = requestBuilder.build();
         return send(requestBase, charsetName);
     }
@@ -173,8 +174,23 @@ public class HttpUtil {
      * @param requestBase 请求对象,可通过{@code HttpRequestBuilder}创建
      * @return 如果访问状态码是200,则返回响应内容, 否则抛出 HttpException 异常.
      * */
-    public static String send(HttpRequestBase requestBase, Charset charset) throws HttpException {
-        String result = null;
+    public static String send(HttpRequestBase requestBase, final Charset charset) throws HttpException {
+        final StringBuilder result = new StringBuilder();
+        send(requestBase, response->{
+            try {
+                result.append(EntityUtils.toString(response.getEntity(), charset));
+            } catch (IOException e) {
+                log.error("", e);
+            }
+        });
+        return result.toString();
+    }
+    /**
+     * 发送请求
+     * @param requestBase 请求对象,可通过{@code HttpRequestBuilder}创建
+     * @return 如果访问状态码是200,则返回响应内容, 否则抛出 HttpException 异常.
+     * */
+    public static void send(HttpRequestBase requestBase, Consumer<CloseableHttpResponse> callback) throws HttpException {
         CloseableHttpClient client = null;
         CloseableHttpResponse response = null;
         try {
@@ -182,12 +198,16 @@ public class HttpUtil {
             if(client == null){
                 throw new NullPointerException("client couldn't be null");
             }
-            response = doSend(client, requestBase);
+            response = client.execute(requestBase);
+            if(response == null){
+                throw new HttpException("response is null");
+            }
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                result = EntityUtils.toString(response.getEntity(), charset);
+                callback.accept(response);
             }else{
                 throw new HttpException("response status code is "+response.getStatusLine().getStatusCode());
             }
+
         } catch (IOException | NoSuchAlgorithmException | KeyManagementException e) {
             log.error("", e);
         }finally {
@@ -197,18 +217,38 @@ public class HttpUtil {
                 log.error("", e);
             }
         }
-        return result;
     }
-
     /**
      * 发送请求
      * @param requestBase 请求对象,可通过{@code HttpRequestBuilder}创建
+     * @return 如果访问状态码是200,则返回响应内容, 否则抛出 HttpException 异常.
      * */
-    public static CloseableHttpResponse doSend(CloseableHttpClient client, HttpRequestBase requestBase) throws IOException {
-        if(client == null){
-            throw new NullPointerException("client couldn't be null");
+    public static void send(CloseableHttpClient client, HttpRequestBase requestBase, Consumer<CloseableHttpResponse> callback) throws HttpException {
+        CloseableHttpResponse response = null;
+        try {
+            client = getHttpClient();
+            if(client == null){
+                throw new NullPointerException("client couldn't be null");
+            }
+            response = client.execute(requestBase);
+            if(response == null){
+                throw new HttpException("response is null");
+            }
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                callback.accept(response);
+            }else{
+                throw new HttpException("response status code is "+response.getStatusLine().getStatusCode());
+            }
+
+        } catch (IOException | NoSuchAlgorithmException | KeyManagementException e) {
+            log.error("", e);
+        }finally {
+            try {
+                release(client, response);
+            } catch (IOException e) {
+                log.error("", e);
+            }
         }
-        return client.execute(requestBase);
     }
 
     public static String getResponseEntity(HttpResponse response, final String defaultCharset) throws IOException {

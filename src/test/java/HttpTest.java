@@ -1,4 +1,5 @@
 import com.tpf.util.http.HttpUtil;
+import org.apache.commons.codec.Charsets;
 import org.apache.http.HttpException;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -37,6 +38,11 @@ public class HttpTest {
         String url = "https://www.baidu.com/";
         String result = HttpUtil.get(url, null, null);
         log.info(result);
+    }
+
+    @Test
+    public void testCharset() {
+        log.info(Charsets.UTF_8.displayName());
     }
 
 
